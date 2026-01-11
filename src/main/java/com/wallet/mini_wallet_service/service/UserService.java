@@ -5,6 +5,7 @@ import com.wallet.mini_wallet_service.dto.request.UserRegisterRequest;
 import com.wallet.mini_wallet_service.dto.response.UserLoginResponse;
 import com.wallet.mini_wallet_service.dto.response.UserResponse;
 import com.wallet.mini_wallet_service.entity.User;
+import com.wallet.mini_wallet_service.entity.Wallet;
 import com.wallet.mini_wallet_service.repository.UserRepository;
 import com.wallet.mini_wallet_service.service.exception.AuthenticationFailedException;
 import com.wallet.mini_wallet_service.service.exception.UserAlreadyExistsException;
@@ -18,11 +19,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final WalletService walletService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, WalletService walletService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.walletService = walletService;
     }
 
     public UserResponse registerUser(UserRegisterRequest request){
@@ -40,6 +43,8 @@ public class UserService {
 
 //             save entity
         User savedUser=userRepository.save(user);
+//        create wallet for user after registration
+        walletService.createWalletIfNotExists(user);
 
 //        Convert Entity-> DTO
         UserResponse userResponse=new UserResponse();

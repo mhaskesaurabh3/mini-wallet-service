@@ -17,6 +17,7 @@ public class WalletController {
         this.walletService = walletService;
     }
 
+
     @GetMapping("/balance")
     public Map<String, BigDecimal> getWalletBalance() {
         return Map.of("balance", walletService.getBalance());

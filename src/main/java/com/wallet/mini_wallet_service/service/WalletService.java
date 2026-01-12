@@ -4,9 +4,12 @@ import com.wallet.mini_wallet_service.entity.User;
 import com.wallet.mini_wallet_service.entity.Wallet;
 import com.wallet.mini_wallet_service.repository.UserRepository;
 import com.wallet.mini_wallet_service.repository.WalletRepository;
+import com.wallet.mini_wallet_service.service.security.CurrentUserContext;
+import com.wallet.mini_wallet_service.service.security.CurrentUserContextResolver;
 import com.wallet.mini_wallet_service.service.security.SecurityUtil;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -14,10 +17,12 @@ import java.math.BigDecimal;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
+    private final CurrentUserContextResolver currentUserContextResolver;
 
-    public WalletService(WalletRepository walletRepository, UserRepository userRepository) {
+    public WalletService(WalletRepository walletRepository, UserRepository userRepository, CurrentUserContextResolver currentUserContextResolver) {
         this.walletRepository = walletRepository;
         this.userRepository = userRepository;
+        this.currentUserContextResolver = currentUserContextResolver;
     }
 
     public void createWalletIfNotExists(User user){
@@ -46,5 +51,18 @@ public class WalletService {
         return wallet.getBalance();
     }
 
+    @Transactional
+    public void creditWallet(BigDecimal amount){
+//        resolve logged-in user+wallet (centralised logic)
+        CurrentUserContext context=currentUserContextResolver.resolve();
+        Wallet wallet=context.getWallet();
+
+//        Check amount rule
+        if(amount.compareTo(BigDecimal.ZERO)<=0){
+            throw new IllegalArgumentException("Credit amount must be greater than zero");
+        }
+//        credit balance
+        wallet.setBalance(wallet.getBalance().add(amount));
+    }
 
 }

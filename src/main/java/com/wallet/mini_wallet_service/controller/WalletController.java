@@ -1,9 +1,11 @@
 package com.wallet.mini_wallet_service.controller;
 
+import com.wallet.mini_wallet_service.dto.request.WalletCreditRequest;
 import com.wallet.mini_wallet_service.service.WalletService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -21,5 +23,11 @@ public class WalletController {
     @GetMapping("/balance")
     public Map<String, BigDecimal> getWalletBalance() {
         return Map.of("balance", walletService.getBalance());
+    }
+
+    @PostMapping("/credit")
+    public ResponseEntity<Map<String, String>> creditWallet(@Valid @RequestBody WalletCreditRequest request){
+        walletService.creditWallet(request.getAmount());
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Wallet credited successfully"));
     }
 }

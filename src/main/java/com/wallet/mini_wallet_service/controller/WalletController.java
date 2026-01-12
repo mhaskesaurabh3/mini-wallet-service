@@ -28,6 +28,6 @@ public class WalletController {
     @PostMapping("/credit")
     public ResponseEntity<Map<String, String>> creditWallet(@Valid @RequestBody WalletCreditRequest request){
         walletService.creditWallet(request.getAmount());
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Wallet credited successfully"));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Amount credited successfully"));
     }
 }

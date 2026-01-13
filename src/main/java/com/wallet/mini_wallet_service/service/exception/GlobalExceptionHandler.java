@@ -48,5 +48,10 @@ public class GlobalExceptionHandler {
                 .body(new CustomErrorResponse("AUTH_FAILED", ex.getMessage()));
     }
 
-
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<CustomErrorResponse> handleInsufficientBalance(InsufficientBalanceException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new CustomErrorResponse("INSUFFICIENT_BALANCE", ex.getMessage()));
+    }
 }

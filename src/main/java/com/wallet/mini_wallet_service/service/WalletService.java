@@ -4,6 +4,7 @@ import com.wallet.mini_wallet_service.entity.User;
 import com.wallet.mini_wallet_service.entity.Wallet;
 import com.wallet.mini_wallet_service.repository.UserRepository;
 import com.wallet.mini_wallet_service.repository.WalletRepository;
+import com.wallet.mini_wallet_service.service.exception.InsufficientBalanceException;
 import com.wallet.mini_wallet_service.service.security.CurrentUserContext;
 import com.wallet.mini_wallet_service.service.security.CurrentUserContextResolver;
 import com.wallet.mini_wallet_service.service.security.SecurityUtil;
@@ -65,4 +66,15 @@ public class WalletService {
         wallet.setBalance(wallet.getBalance().add(amount));
     }
 
+    @Transactional
+    public BigDecimal debitWallet(BigDecimal amount){
+        CurrentUserContext context=currentUserContextResolver.resolve();
+        Wallet wallet=context.getWallet();
+
+       if(wallet.getBalance().compareTo(amount)< 0){
+           throw new InsufficientBalanceException("Insufficient balance");
+       }
+       wallet.setBalance(wallet.getBalance().subtract(amount));
+       return wallet.getBalance();
+    }
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class WalletService {
@@ -106,6 +107,25 @@ public class WalletService {
         transactionRepository.save(transaction);
        return wallet.getBalance();
 
+    }
+
+    public List<Transaction> getTransactionHistory(){
+        CurrentUserContext context=currentUserContextResolver.resolve();
+        Wallet wallet = context.getWallet();
+
+//        Fetch transactions
+        List<Transaction> transactions=transactionRepository.findByWalletOrderByCreatedAtDesc(wallet);
+
+//            map response to DTO
+        return transactions.stream().map(tx-> {
+            Transaction transaction= new Transaction();
+            transaction.setType(tx.getType());
+            transaction.setAmount(tx.getAmount());
+            transaction.setEmail(tx.getEmail());
+            transaction.setBalanceAfter(tx.getBalanceAfter());
+            transaction.setWallet(tx.getWallet());
+            return transaction;
+        }).toList();
     }
 
 }

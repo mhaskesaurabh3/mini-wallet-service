@@ -2,6 +2,7 @@ package com.wallet.mini_wallet_service.controller;
 
 import com.wallet.mini_wallet_service.dto.request.WalletCreditRequest;
 import com.wallet.mini_wallet_service.dto.request.WalletDebitRequest;
+import com.wallet.mini_wallet_service.entity.Transaction;
 import com.wallet.mini_wallet_service.service.WalletService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,5 +38,11 @@ public class WalletController {
     public ResponseEntity<Map<String, BigDecimal>> debitWallet(@Valid @RequestBody WalletDebitRequest request){
         BigDecimal remainingBalance=walletService.debitWallet(request.getAmount());
         return ResponseEntity.ok(Map.of("Remaining Balance", remainingBalance));
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<?> getTransactionHistory() {
+        List<Transaction> transactionHistory = walletService.getTransactionHistory();
+        return ResponseEntity.ok(transactionHistory);
     }
 }

@@ -71,6 +71,10 @@ public class Transaction {
         this.email = email;
     }
 
+    public  LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public void setBalanceAfter(BigDecimal balanceAfter) {
         this.balanceAfter = balanceAfter;
     }

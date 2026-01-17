@@ -1,5 +1,6 @@
 package com.wallet.mini_wallet_service.service.exception;
 import com.wallet.mini_wallet_service.service.exception.UserAlreadyExistsException;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
@@ -53,5 +54,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new CustomErrorResponse("INSUFFICIENT_BALANCE", ex.getMessage()));
+    }
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<Map<String, String>> handleOptimisticLockException(
+            OptimisticLockException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "error", "CONCURRENT_UPDATE",
+                        "message", "Wallet was updated concurrently. Please retry."
+                ));
     }
 }

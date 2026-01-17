@@ -2,7 +2,7 @@ package com.wallet.mini_wallet_service.controller;
 
 import com.wallet.mini_wallet_service.dto.request.WalletCreditRequest;
 import com.wallet.mini_wallet_service.dto.request.WalletDebitRequest;
-import com.wallet.mini_wallet_service.entity.Transaction;
+import com.wallet.mini_wallet_service.dto.response.TransactionResponse;
 import com.wallet.mini_wallet_service.service.WalletService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -41,8 +41,8 @@ public class WalletController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<?> getTransactionHistory() {
-        List<Transaction> transactionHistory = walletService.getTransactionHistory();
+    public ResponseEntity<?> getTransactionHistory(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        List<TransactionResponse> transactionHistory = walletService.getTransactionHistory(page, size);
         return ResponseEntity.ok(transactionHistory);
     }
 }

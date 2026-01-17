@@ -1,5 +1,6 @@
 package com.wallet.mini_wallet_service.service;
 
+import com.wallet.mini_wallet_service.dto.response.TransactionResponse;
 import com.wallet.mini_wallet_service.entity.Transaction;
 import com.wallet.mini_wallet_service.entity.TransactionType;
 import com.wallet.mini_wallet_service.entity.User;
@@ -11,12 +12,16 @@ import com.wallet.mini_wallet_service.service.exception.InsufficientBalanceExcep
 import com.wallet.mini_wallet_service.service.security.CurrentUserContext;
 import com.wallet.mini_wallet_service.service.security.CurrentUserContextResolver;
 import com.wallet.mini_wallet_service.service.security.SecurityUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class WalletService {
@@ -109,23 +114,25 @@ public class WalletService {
 
     }
 
-    public List<Transaction> getTransactionHistory(){
+    public List<TransactionResponse> getTransactionHistory(int page, int size){
         CurrentUserContext context=currentUserContextResolver.resolve();
         Wallet wallet = context.getWallet();
 
+//        Implement pagination
+        PageRequest pageable= PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
 //        Fetch transactions
-        List<Transaction> transactions=transactionRepository.findByWalletOrderByCreatedAtDesc(wallet);
+        Page<Transaction> transactions=transactionRepository.findByWallet(wallet, pageable);
 
-//            map response to DTO
-        return transactions.stream().map(tx-> {
-            Transaction transaction= new Transaction();
-            transaction.setType(tx.getType());
-            transaction.setAmount(tx.getAmount());
-            transaction.setEmail(tx.getEmail());
-            transaction.setBalanceAfter(tx.getBalanceAfter());
-            transaction.setWallet(tx.getWallet());
-            return transaction;
-        }).toList();
+        // Map entity → DTO and return as list
+        return transactions.stream().map(tx ->
+                new TransactionResponse(
+                        tx.getType(),
+                        tx.getAmount(),
+                        tx.getBalanceAfter(),
+                        tx.getEmail(),
+                        tx.getCreatedAt()
+                )
+        ).collect(Collectors.toList());
     }
-
 }

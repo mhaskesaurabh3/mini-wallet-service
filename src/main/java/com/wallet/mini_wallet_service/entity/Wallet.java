@@ -12,6 +12,9 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
@@ -22,6 +25,11 @@ public class Wallet {
     public Long getId() {
         return id;
     }
+
+    public Long getVersion() {
+        return version;
+    }
+
     public User getUser() {
         return user;
     }

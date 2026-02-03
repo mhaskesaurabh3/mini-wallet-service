@@ -33,6 +33,9 @@ public class Transaction {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "idempotency_key", length = 100)
+    private String idempotencyKey;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -67,6 +70,11 @@ public class Transaction {
     public String getEmail() {
         return email;
     }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -77,5 +85,8 @@ public class Transaction {
 
     public void setBalanceAfter(BigDecimal balanceAfter) {
         this.balanceAfter = balanceAfter;
+    }
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 }

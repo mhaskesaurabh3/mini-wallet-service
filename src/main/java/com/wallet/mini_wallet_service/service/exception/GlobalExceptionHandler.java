@@ -1,10 +1,11 @@
 package com.wallet.mini_wallet_service.service.exception;
 import com.wallet.mini_wallet_service.service.exception.UserAlreadyExistsException;
 import jakarta.persistence.OptimisticLockException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -66,4 +67,17 @@ public class GlobalExceptionHandler {
                         "message", "Wallet was updated concurrently. Please retry."
                 ));
     }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomErrorResponse> handleDuplicateExecption(){
+        return ResponseEntity.badRequest().body(new CustomErrorResponse("DUPLICATE_REQUEST", "Request has already been processed."));
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<CustomErrorResponse> handleMissingHeaderException(MissingRequestHeaderException header){
+         String headerName=header.getHeaderName();
+        String message=String.format("Required header '%s' is missing", headerName);
+        return ResponseEntity.badRequest().body(new CustomErrorResponse("MISSING_HEADER", message));
+    }
+
 }

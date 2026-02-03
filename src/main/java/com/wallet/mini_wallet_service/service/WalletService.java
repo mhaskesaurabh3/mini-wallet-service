@@ -12,15 +12,15 @@ import com.wallet.mini_wallet_service.service.exception.InsufficientBalanceExcep
 import com.wallet.mini_wallet_service.service.security.CurrentUserContext;
 import com.wallet.mini_wallet_service.service.security.CurrentUserContextResolver;
 import com.wallet.mini_wallet_service.service.security.SecurityUtil;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,11 +65,18 @@ public class WalletService {
     }
 
     @Transactional
-    public void creditWallet(BigDecimal amount){
+    public void creditWallet(BigDecimal amount, String idempotencyKey){
 //        resolve logged-in user+wallet (centralised logic)
         CurrentUserContext context=currentUserContextResolver.resolve();
         Wallet wallet=context.getWallet();
         User user=context.getUser();
+
+//        check duplicate request
+        Optional<Transaction> existingTransaction=transactionRepository.findByWalletAndIdempotencyKey(wallet, idempotencyKey);
+        if (existingTransaction.isPresent()){
+            throw new DataIntegrityViolationException("Duplicate credit request");
+        }
+
 
 //        Check amount rule
         if(amount.compareTo(BigDecimal.ZERO)<=0){
@@ -84,22 +91,29 @@ public class WalletService {
         transaction.setType(TransactionType.CREDIT);
         transaction.setAmount(amount);
         transaction.setEmail(user.getEmail());
+        transaction.setIdempotencyKey(idempotencyKey);
         transaction.setBalanceAfter(wallet.getBalance());
 //        save credit transaction
         transactionRepository.save(transaction);
     }
 
     @Transactional
-    public BigDecimal debitWallet(BigDecimal amount){
+    public BigDecimal debitWallet(BigDecimal amount, String idempotencyKey){
         CurrentUserContext context=currentUserContextResolver.resolve();
         Wallet wallet=context.getWallet();
         User user=context.getUser();
 
+        Optional<Transaction>existingTransaction=transactionRepository.findByWalletAndIdempotencyKey(wallet, idempotencyKey);
 
-       if(wallet.getBalance().compareTo(amount)< 0){
-           throw new InsufficientBalanceException("Insufficient balance");
-       }
-       wallet.setBalance(wallet.getBalance().subtract(amount));
+        if(existingTransaction.isPresent()){
+            throw new DataIntegrityViolationException("Duplicate debit request");
+        }
+
+
+        if(wallet.getBalance().compareTo(amount)< 0){
+            throw new InsufficientBalanceException("Insufficient balance");
+        }
+        wallet.setBalance(wallet.getBalance().subtract(amount));
 
 //       Record in audit log
         Transaction transaction= new Transaction();
@@ -107,10 +121,10 @@ public class WalletService {
         transaction.setType(TransactionType.DEBIT);
         transaction.setAmount(amount);
         transaction.setEmail(user.getEmail());
-        transaction.setBalanceAfter(wallet.getBalance());
-//        save debit transaction
+        transaction.setIdempotencyKey(idempotencyKey);
+        transaction.setBalanceAfter(wallet.getBalance());//        save debit transaction
         transactionRepository.save(transaction);
-       return wallet.getBalance();
+        return wallet.getBalance();
 
     }
 

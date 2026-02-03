@@ -29,14 +29,14 @@ public class WalletController {
     }
 
     @PostMapping("/credit")
-    public ResponseEntity<Map<String, String>> creditWallet(@Valid @RequestBody WalletCreditRequest request){
-        walletService.creditWallet(request.getAmount());
+    public ResponseEntity<Map<String, String>> creditWallet(@Valid @RequestBody WalletCreditRequest request, @RequestHeader("X-Idempotency-Key") String idempotencyKey){
+        walletService.creditWallet(request.getAmount(), idempotencyKey);
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Amount credited successfully"));
     }
 
     @PostMapping("/debit")
-    public ResponseEntity<Map<String, BigDecimal>> debitWallet(@Valid @RequestBody WalletDebitRequest request){
-        BigDecimal remainingBalance=walletService.debitWallet(request.getAmount());
+    public ResponseEntity<Map<String, BigDecimal>> debitWallet(@Valid @RequestBody WalletDebitRequest request, @RequestHeader("X-Idempotency-Key") String idempotencyKey){
+        BigDecimal remainingBalance=walletService.debitWallet(request.getAmount(), idempotencyKey);
         return ResponseEntity.ok(Map.of("Remaining Balance", remainingBalance));
     }
 

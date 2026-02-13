@@ -37,7 +37,7 @@ public class WalletController {
     @PostMapping("/debit")
     public ResponseEntity<Map<String, BigDecimal>> debitWallet(@Valid @RequestBody WalletDebitRequest request, @RequestHeader("X-Idempotency-Key") String idempotencyKey){
         BigDecimal remainingBalance=walletService.debitWallet(request.getAmount(), idempotencyKey);
-        return ResponseEntity.ok(Map.of("Remaining Balance", remainingBalance));
+        return ResponseEntity.ok(Map.of("newBalance", remainingBalance));
     }
 
     @GetMapping("/transactions")
